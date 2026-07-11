@@ -93,12 +93,17 @@ async def get_current_user(
 def require_roles(allowed_roles: List[str]):
     """
     Usage in a route:
-        @router.get("/ncr/approve", dependencies=[Depends(require_roles([Role.ENGINEER, Role.PM]))])
+        @router.get("/ncr/approve")
+        def approve_ncr(current_user: models.User = Depends(require_roles([Role.ENGINEER, Role.PM]))):
     """
-    async def role_checker(token: str = Depends(oauth2_scheme)):
+    async def role_checker(
+        token: str = Depends(oauth2_scheme),
+        db: Session = Depends(database.get_db)
+    ):
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             role: str = payload.get("role")
+            email: str = payload.get("sub")
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -107,4 +112,10 @@ def require_roles(allowed_roles: List[str]):
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Role '{role}' is not authorised for this action."
             )
+            
+        user = get_user_by_email(db, email=email)
+        if user is None:
+            raise HTTPException(status_code=401, detail="User not found")
+        return user
+
     return role_checker
