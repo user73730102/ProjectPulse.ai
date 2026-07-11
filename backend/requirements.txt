@@ -5,16 +5,15 @@ pg8000==1.31.2
 pgvector==0.2.5
 pydantic==2.7.1
 pydantic-settings>=2.3.0
-onnxruntime>=1.17.0
 python-jose[cryptography]==3.3.0
 bcrypt==4.0.1
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.9
 
 # Document Parsing
-docling>=2.0.0        # IBM Docling for advanced layout and hierarchical PDF extraction
-pypdf==4.2.0          # Fallback for simple PDFs if Docling fails to extract anything
-pytesseract==0.3.10   # Kept as OCR fallback for scanned pages only
+pypdf==4.2.0          # Superfast extraction for text-based specs
+pdf2image==1.17.0     # Converts scanned pages to images
+pytesseract==0.3.10   # Extremely lightweight OCR for the scanned pages
 
 # Embeddings — local, no API cost
 sentence-transformers==2.7.0

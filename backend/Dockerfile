@@ -4,8 +4,8 @@ WORKDIR /app
 
 
 
-# Install system dependencies required by OpenCV (used by Docling)
-RUN apt-get update && apt-get install -y libgl1 libglib2.0-0 && rm -rf /var/lib/apt/lists/*
+# Install system dependencies required by Poppler (pdf2image) and Tesseract (OCR)
+RUN apt-get update && apt-get install -y poppler-utils tesseract-ocr && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
 COPY requirements.txt .
