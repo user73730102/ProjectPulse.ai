@@ -35,7 +35,7 @@ def _get_gemini():
     if not api_key:
         raise EnvironmentError("GEMINI_API_KEY is not set in the environment.")
     return ChatGoogleGenerativeAI(
-        model="gemini-pro",  # Using gemini-pro (1.0) for universal region compatibility
+        model="gemini-2.5-flash",  # Update to available 2026 model
         google_api_key=api_key,
         temperature=0.1,  # Low temperature for deterministic compliance checking
     )
