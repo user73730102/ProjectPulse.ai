@@ -41,7 +41,19 @@ def extract_spec_chunks(pdf_path: str) -> List[SpecChunk]:
         doc = result.document
         
         # Generate semantic chunks
-        doc_chunks = chunker.chunk(doc)
+        doc_chunks = list(chunker.chunk(doc))
+        
+        if not doc_chunks:
+            # Fallback for simple documents where HierarchicalChunker yields nothing
+            logger.warning("HierarchicalChunker returned empty. Falling back to raw Markdown export.")
+            md_text = doc.export_to_markdown()
+            if md_text and md_text.strip():
+                chunks.append(SpecChunk(
+                    clause_number="0.0",
+                    title="Document Content",
+                    content=md_text.strip(),
+                    page=1
+                ))
         
         for chunk in doc_chunks:
             # Safely extract metadata provided by Docling
