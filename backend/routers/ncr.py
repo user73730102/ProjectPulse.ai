@@ -34,8 +34,9 @@ router = APIRouter(prefix="/ncr", tags=["Non-Conformance Reports"])
 class NCROut(BaseModel):
     id: int
     ncr_number: str
-    submittal_id: int
-    clause_id: int
+    submittal_id: Optional[int] = None
+    clause_id: Optional[int] = None
+    test_record_id: Optional[int] = None
     required_value: Optional[str]
     submitted_value: Optional[str]
     deviation_description: str

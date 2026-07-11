@@ -112,8 +112,9 @@ export interface NCRSummary {
 export interface NCR {
   id: number;
   ncr_number: string;
-  submittal_id: number;
-  clause_id: number;
+  submittal_id: number | null;
+  clause_id: number | null;
+  test_record_id?: number | null;
   required_value: string | null;
   submitted_value: string | null;
   deviation_description: string;
