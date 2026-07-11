@@ -3,8 +3,21 @@ import { useState, useRef, useEffect } from "react";
 import { queryRFI, getRFIHistory, RFIHistoryItem, Citation } from "@/lib/api";
 
 function CitationBadge({ citation, index }: { citation: Citation; index: number }) {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  
+  let urlHash = "";
+  if (citation.page) {
+    urlHash += `#page=${citation.page}`;
+  }
+  if (citation.excerpt) {
+    // Chrome PDF viewer supports &search=exact+phrase
+    // Take the first 6 words of the excerpt to ensure it finds a match despite formatting differences
+    const searchTerms = citation.excerpt.split(' ').slice(0, 6).join(' ');
+    urlHash += (urlHash ? '&' : '#') + `search="${encodeURIComponent(searchTerms)}"`;
+  }
+
   const fileUrl = citation.file_path 
-    ? `http://localhost:8000/${citation.file_path}${citation.page ? `#page=${citation.page}` : ''}`
+    ? `${baseUrl}/${citation.file_path}${urlHash}`
     : null;
 
   return (
