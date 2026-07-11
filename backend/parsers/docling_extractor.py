@@ -83,13 +83,35 @@ def extract_spec_chunks(pdf_path: str) -> List[SpecChunk]:
             
         # Ultimate fallback if docling found literally nothing
         if not chunks:
-            logger.warning("Document yielded 0 chunks. Appending a placeholder chunk.")
-            chunks.append(SpecChunk(
-                clause_number="0.0",
-                title="Unreadable Document",
-                content="The AI could not read any text from this document. It may be a scanned image with unrecognizable text, or completely blank.",
-                page=1
-            ))
+            logger.warning("Docling yielded 0 chunks. Attempting pure text extraction with pypdf...")
+            try:
+                import pypdf
+                reader = pypdf.PdfReader(pdf_path)
+                full_text = []
+                for i, page in enumerate(reader.pages):
+                    text = page.extract_text()
+                    if text and text.strip():
+                        full_text.append(text.strip())
+                
+                if full_text:
+                    chunks.append(SpecChunk(
+                        clause_number="0.0",
+                        title="Document Content (Basic Extraction)",
+                        content="\n\n".join(full_text),
+                        page=1
+                    ))
+            except Exception as inner_e:
+                logger.error(f"pypdf fallback failed: {inner_e}")
+            
+            # If still nothing could be extracted by either library
+            if not chunks:
+                logger.warning("Document yielded 0 chunks from both Docling and pypdf. Appending a placeholder chunk.")
+                chunks.append(SpecChunk(
+                    clause_number="0.0",
+                    title="Unreadable Document",
+                    content="The AI could not read any text from this document. It may be a scanned image with unrecognizable text, or completely blank.",
+                    page=1
+                ))
             
     except Exception as e:
         logger.error(f"Failed to parse PDF with Docling: {e}", exc_info=True)
