@@ -118,6 +118,14 @@ def _run_ingestion(document_id: int, file_path: str):
     except Exception as e:
         db.rollback()
         logger.error(f"❌ Ingestion failed for document {document_id}: {e}")
+        # Force is_processed to True so the UI stops polling infinitely
+        try:
+            doc = db.query(models.Document).filter(models.Document.id == document_id).first()
+            if doc:
+                doc.is_processed = True
+                db.commit()
+        except:
+            pass
     finally:
         db.close()
 
