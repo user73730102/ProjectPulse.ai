@@ -210,6 +210,10 @@ export async function getDocumentChunks(docId: number): Promise<SpecSection[]> {
   return request<SpecSection[]>(`/documents/${docId}/chunks`);
 }
 
+export async function deleteDocument(docId: number): Promise<{ detail: string }> {
+  return request<{ detail: string }>(`/documents/${docId}`, { method: "DELETE" });
+}
+
 // ─── Submittals API ────────────────────────────────────────────────────────
 
 export async function listSubmittals(params?: { status?: string; spec_section_ref?: string }): Promise<Submittal[]> {
@@ -219,6 +223,22 @@ export async function listSubmittals(params?: { status?: string; spec_section_re
 
 export async function getSubmittal(id: number): Promise<SubmittalDetail> {
   return request<SubmittalDetail>(`/submittals/${id}`);
+}
+
+export async function uploadSubmittal(file: File): Promise<SubmittalDetail[]> {
+  const form = new FormData();
+  form.append("file", file);
+  
+  const res = await fetch(`${API_BASE}/submittals/upload`, {
+    method: "POST",
+    headers: { ...authHeaders() } as HeadersInit,
+    body: form,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || "Upload failed");
+  }
+  return res.json();
 }
 
 // ─── NCR API ───────────────────────────────────────────────────────────────

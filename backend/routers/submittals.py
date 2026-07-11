@@ -10,11 +10,13 @@ Routes:
   PATCH /submittals/{id}/status — Update submittal status (role-gated)
 """
 
+import os
+import uuid
 import logging
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -78,6 +80,78 @@ class StatusUpdate(BaseModel):
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+
+UPLOAD_DIR = "uploads/submittals"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+@router.post("/upload", response_model=list[SubmittalOut])
+async def upload_submittal(
+    file: UploadFile = File(...),
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(require_roles([Role.CONTRACTOR, Role.ENGINEER, Role.PM])),
+):
+    """
+    Upload a vendor submittal PDF.
+    This saves the file and uses the SubmittalParser agent to extract all 
+    structured data (vendor, specs) automatically. Returns a list of submittals 
+    if the PDF contains multiple products!
+    """
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(400, "Only PDF files are supported for submittals right now.")
+
+    # 1. Save file locally
+    file_id = uuid.uuid4().hex
+    save_path = os.path.join(UPLOAD_DIR, f"{file_id}.pdf")
+    
+    content = await file.read()
+    with open(save_path, "wb") as f:
+        f.write(content)
+
+    # 2. Save Document record
+    doc = models.Document(
+        filename=f"{file_id}.pdf",
+        original_name=file.filename,
+        file_path=save_path,
+        doc_type=models.DocumentType.submittal,
+        uploaded_by=current_user.id,
+        is_processed=True,  # Processed instantly via parser
+    )
+    db.add(doc)
+    db.commit()
+    db.refresh(doc)
+
+    # 3. Parse PDF with AI Agent
+    from agents.submittal_parser import parse_submittal_pdf
+    parsed_items = parse_submittal_pdf(save_path, file.filename)
+
+    # 4. Count existing to generate submittal number
+    existing_count = db.query(models.Submittal).count()
+
+    created_submittals = []
+    
+    # 5. Create Submittal Record(s)
+    for i, item in enumerate(parsed_items):
+        sub_num = f"SUB-{datetime.now().year}-{existing_count + i + 1:03d}"
+        
+        sub = models.Submittal(
+            submittal_number=sub_num,
+            title=item.get("title", file.filename),
+            vendor_name=item.get("vendor_name"),
+            document_id=doc.id,
+            spec_section_ref=item.get("spec_section_ref"),
+            submitted_value=item.get("submitted_value"),
+            status=models.SubmittalStatus.pending,
+        )
+        db.add(sub)
+        created_submittals.append(sub)
+        
+    db.commit()
+    for sub in created_submittals:
+        db.refresh(sub)
+    
+    logger.info(f"Successfully created {len(created_submittals)} submittal(s) from {file.filename}")
+    return created_submittals
+
 
 @router.post("/", response_model=SubmittalOut)
 def create_submittal(

@@ -54,7 +54,8 @@ data "aws_ami" "ubuntu" {
 # 3. Create the EC2 Instance
 resource "aws_instance" "pulse_server" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "m7i-flex.large"
+  # instance_type = "m7i-flex.large"
+  instance_type = "t3.micro"
   
   vpc_security_group_ids = [aws_security_group.pulse_sg.id]
 

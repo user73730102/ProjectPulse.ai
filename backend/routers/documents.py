@@ -234,3 +234,42 @@ def get_document_chunks(
         .all()
     )
     return sections
+
+@router.delete("/{document_id}")
+def delete_document(
+    document_id: int,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(require_roles([Role.PM])), # PM / Admins only
+):
+    """Delete a document and all its associated data (chunks, submittals, ncrs)."""
+    doc = db.query(models.Document).filter(models.Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(404, "Document not found.")
+
+    try:
+        # Delete related SpecSections (Chunks)
+        db.query(models.SpecSection).filter(models.SpecSection.document_id == document_id).delete()
+        
+        # If it's a submittal document, delete associated Submittals and their NCRs
+        submittals = db.query(models.Submittal).filter(models.Submittal.document_id == document_id).all()
+        for sub in submittals:
+            db.query(models.NonConformanceReport).filter(models.NonConformanceReport.submittal_id == sub.id).delete()
+            db.delete(sub)
+            
+        # Delete the file from local disk if it exists
+        if os.path.exists(doc.file_path):
+            try:
+                os.remove(doc.file_path)
+            except Exception as e:
+                logger.warning(f"Could not remove file {doc.file_path}: {e}")
+
+        # Delete the document record
+        db.delete(doc)
+        db.commit()
+        
+        logger.info(f"Document {document_id} deleted by PM {current_user.id}")
+        return {"detail": "Document successfully deleted"}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to delete document {document_id}: {e}")
+        raise HTTPException(500, f"Failed to delete document: {e}")

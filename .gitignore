@@ -56,7 +56,7 @@ deploy/*.tfstate
 deploy/*.tfstate.*
 deploy/*.tfvars
 deploy/crash.log
-
+generate_pdfs.py
 # ==========================================
 # Test Files
 # ==========================================

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
-import { listDocuments, uploadDocument, Document } from "@/lib/api";
+import { listDocuments, uploadDocument, deleteDocument, Document } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
 export default function DocumentsPage() {
@@ -22,6 +22,16 @@ export default function DocumentsPage() {
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`Are you sure you want to delete ${name}? This will remove all extracted chunks and related submittals.`)) return;
+    try {
+      await deleteDocument(id);
+      fetchDocs();
+    } catch (err: any) {
+      alert(err.message || "Failed to delete document");
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,8 +97,19 @@ export default function DocumentsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 fade-up">
           {documents.map((doc) => (
-            <div key={doc.id} className="glass rounded-xl p-5 hover:border-blue-500/30 transition-all group">
-              <div className="flex items-start justify-between mb-3">
+            <div key={doc.id} className="glass rounded-xl p-5 hover:border-blue-500/30 transition-all group relative">
+              {user?.role === "pm" && (
+                <button
+                  onClick={() => handleDelete(doc.id, doc.original_name)}
+                  className="absolute top-4 right-4 text-red-500/50 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                  title="Delete Document"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              )}
+              <div className="flex items-start justify-between mb-3 pr-8">
                 <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />

@@ -1,7 +1,6 @@
-"use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { listSubmittals, Submittal, runComplianceCheck } from "@/lib/api";
+import { listSubmittals, Submittal, runComplianceCheck, uploadSubmittal } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
 function StatusBadge({ status }: { status: string }) {
@@ -19,7 +18,9 @@ export default function SubmittalsPage() {
   const [submittals, setSubmittals] = useState<Submittal[]>([]);
   const [loading, setLoading] = useState(true);
   const [runningId, setRunningId] = useState<number | null>(null);
+  const [uploading, setUploading] = useState(false);
   const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchData();
@@ -28,6 +29,31 @@ export default function SubmittalsPage() {
   const fetchData = () => {
     setLoading(true);
     listSubmittals().then(setSubmittals).catch(console.error).finally(() => setLoading(false));
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      alert("Please upload a PDF file.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      await uploadSubmittal(file);
+      fetchData(); // Refresh list to show the new parsed submittal
+    } catch (err: any) {
+      alert(`Upload failed: ${err.message}`);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const handleRunCompliance = async (id: number) => {
@@ -48,12 +74,51 @@ export default function SubmittalsPage() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
+    <div className="p-8 max-w-7xl mx-auto pb-24">
       <div className="flex items-center justify-between mb-8 fade-up">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Vendor Submittals</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage incoming equipment submittals and run AI compliance checks.</p>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <svg className="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" />
+            </svg>
+            Vendor Submittals
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Upload vendor cut-sheets and run AI compliance checks against project specs.</p>
         </div>
+        
+        {(user?.role === "contractor" || user?.role === "engineer" || user?.role === "pm") && (
+          <div>
+            <input 
+              type="file" 
+              accept=".pdf" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+            />
+            <button 
+              onClick={handleUploadClick}
+              disabled={uploading}
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 shadow-lg shadow-emerald-500/20"
+            >
+              {uploading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Uploading & Parsing...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                  </svg>
+                  Upload Submittal
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -95,9 +160,9 @@ export default function SubmittalsPage() {
                       <button
                         onClick={() => handleRunCompliance(sub.id)}
                         disabled={runningId === sub.id}
-                        className="text-xs font-medium text-purple-400 hover:text-purple-300 disabled:opacity-50"
+                        className="px-3 py-1.5 rounded bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs font-medium transition-colors disabled:opacity-50"
                       >
-                        {runningId === sub.id ? "Running..." : "Run AI Check"}
+                        {runningId === sub.id ? "Running AI..." : "Run AI Check"}
                       </button>
                     )}
                   </td>
@@ -106,7 +171,7 @@ export default function SubmittalsPage() {
               {submittals.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
-                    No submittals found.
+                    No submittals found. Upload a submittal to get started.
                   </td>
                 </tr>
               )}
