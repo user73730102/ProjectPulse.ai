@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with pgvector — the only database we need for Phase 1.
+  # Relationships are handled via foreign keys (clause_id, submittal_id, spec_id).
+  # Neo4j deferred to Phase 2 when graph traversal queries become genuinely necessary.
+  db:
+    image: ankane/pgvector:latest
+    container_name: pulse_postgres
+    environment:
+      POSTGRES_USER: pulse_user
+      POSTGRES_PASSWORD: pulse_password
+      POSTGRES_DB: pulse_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pulse_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: pulse_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+pg8000://pulse_user:pulse_password@db:5432/pulse_db
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  pulse_pgdata:

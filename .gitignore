@@ -1,0 +1,49 @@
+# ==========================================
+# Frontend (Next.js / Node)
+# ==========================================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+frontend/.env*.local
+
+# ==========================================
+# Backend (Python / FastAPI)
+# ==========================================
+backend/__pycache__/
+backend/*.py[cod]
+backend/*$py.class
+backend/.pytest_cache/
+backend/venv/
+backend/.venv/
+backend/env/
+
+# Secret config - NEVER commit these
+backend/.env
+
+# User uploads (PDFs, images)
+backend/uploads/
+
+# ==========================================
+# Database / Docker
+# ==========================================
+# Ignore local Postgres volume data
+pulse_pgdata/
+*.sql.gz
+
+# ==========================================
+# Large Sample Files
+# ==========================================
+# Ignore large PDFs placed in the root directory for testing
+*.pdf
+
+# ==========================================
+# OS / IDE Files
+# ==========================================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo

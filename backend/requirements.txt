@@ -1,0 +1,29 @@
+fastapi-slim==0.111.0
+uvicorn==0.30.1
+sqlalchemy==2.0.30
+pg8000==1.31.2
+pgvector==0.2.5
+pydantic==2.7.1
+pydantic-settings==2.2.1
+python-jose[cryptography]==3.3.0
+bcrypt==4.0.1
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.9
+
+# Document Parsing
+pypdf==4.2.0       # Used for initial page rendering / metadata extraction
+pytesseract==0.3.10   # Kept as OCR fallback for scanned pages only
+
+# Embeddings — local, no API cost
+sentence-transformers==2.7.0
+
+# AI Orchestration
+langgraph==0.0.65
+langchain==0.2.1
+langchain-community==0.2.1
+# Both LLMs — task-routed via llm_router.py abstraction
+langchain-google-genai==1.0.5   # Gemini — for Compliance & RFI reasoning (long context)
+langchain-groq==0.1.4           # Groq/Llama 3 — for latency-sensitive chat UI
+
+# Rate-limit resilience
+tenacity==8.3.0  # For retry-with-backoff on LLM API calls
