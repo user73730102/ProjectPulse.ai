@@ -33,7 +33,7 @@ export default function DocumentsPage() {
 
     try {
       // Default to "spec" for this demo, in a real app you'd prompt the user
-      await uploadDocument(file, "spec");
+      await uploadDocument(file, "specification");
       fetchDocs(); // Refresh list
     } catch (err: any) {
       setUploadError(err.message || "Failed to upload document");
