@@ -152,8 +152,9 @@ class NonConformanceReport(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     ncr_number = Column(String(100), unique=True, nullable=False, index=True)
-    submittal_id = Column(Integer, ForeignKey("submittals.id"), nullable=False, index=True)
-    clause_id = Column(Integer, ForeignKey("spec_sections.id"), nullable=False, index=True)
+    submittal_id = Column(Integer, ForeignKey("submittals.id"), nullable=True, index=True)
+    clause_id = Column(Integer, ForeignKey("spec_sections.id"), nullable=True, index=True)
+    test_record_id = Column(Integer, ForeignKey("test_records.id"), nullable=True, index=True)
     raised_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
 
@@ -189,3 +190,115 @@ class RFIEntry(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     # Track which chunks were retrieved (for debugging retrieval quality)
     retrieved_chunk_ids = Column(JSON, nullable=True)
+
+
+# ===========================================================================
+# PHASE 2 MODELS
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# Commissioning
+# ---------------------------------------------------------------------------
+
+class TestProcedure(Base):
+    __tablename__ = "test_procedures"
+
+    id = Column(Integer, primary_key=True, index=True)
+    procedure_number = Column(String(100), unique=True, index=True)
+    system_name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    # List of steps/checks, e.g. [{"step_no": 1, "description": "Verify voltage", "expected_value": "400V"}]
+    steps = Column(JSON, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    test_records = relationship("TestRecord", back_populates="procedure")
+
+
+class TestRecord(Base):
+    __tablename__ = "test_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    procedure_id = Column(Integer, ForeignKey("test_procedures.id"), nullable=False)
+    executed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    # Completed results for the steps, e.g. [{"step_no": 1, "actual_value": "398V", "pass": True}]
+    results = Column(JSON, nullable=False)
+    progress = Column(Float, default=0.0) # 0.0 to 100.0
+    status = Column(String(50), default="Pending") # Pending, In Progress, Passed, Failed
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    procedure = relationship("TestProcedure", back_populates="test_records")
+    executed_by_user = relationship("User", foreign_keys=[executed_by])
+
+
+# ---------------------------------------------------------------------------
+# Schedule & Risk
+# ---------------------------------------------------------------------------
+
+class ScheduleTask(Base):
+    __tablename__ = "schedule_tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    task_id = Column(String(100), unique=True, index=True)  # e.g., P6 Activity ID
+    task_name = Column(String(500), nullable=False)
+    start_date = Column(DateTime(timezone=True), nullable=False)
+    end_date = Column(DateTime(timezone=True), nullable=False)
+    is_critical = Column(Boolean, default=False)
+    dependencies = Column(JSON, nullable=True) # List of preceding task_ids
+    
+    # AI generated risk flags
+    risk_score = Column(Float, default=0.0)
+    risk_driver = Column(String(255), nullable=True)
+    risk_impact = Column(String(255), nullable=True)
+    mitigations = Column(JSON, nullable=True) # List of strings
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ---------------------------------------------------------------------------
+# Supply Chain
+# ---------------------------------------------------------------------------
+
+class Equipment(Base):
+    __tablename__ = "equipment"
+
+    id = Column(Integer, primary_key=True, index=True)
+    equipment_tag = Column(String(100), unique=True, index=True) # e.g. "GEN-01"
+    name = Column(String(255), nullable=False)
+    required_on_site_date = Column(DateTime(timezone=True), nullable=True)
+    linked_task_id = Column(String(100), nullable=True) # Links to ScheduleTask.task_id
+
+    purchase_orders = relationship("PurchaseOrder", back_populates="equipment")
+
+
+class PurchaseOrder(Base):
+    __tablename__ = "purchase_orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    po_number = Column(String(100), unique=True, index=True)
+    equipment_id = Column(Integer, ForeignKey("equipment.id"), nullable=False)
+    vendor_name = Column(String(255), nullable=False)
+    status = Column(String(50), default="Issued")
+
+    equipment = relationship("Equipment", back_populates="purchase_orders")
+    shipments = relationship("Shipment", back_populates="purchase_order")
+
+
+class Shipment(Base):
+    __tablename__ = "shipments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tracking_number = Column(String(100), unique=True, index=True)
+    purchase_order_id = Column(Integer, ForeignKey("purchase_orders.id"), nullable=False)
+    origin = Column(String(255), nullable=True)
+    destination = Column(String(255), nullable=True)
+    current_location = Column(String(255), nullable=True)
+    status = Column(String(50), default="Manufacturing") # Manufacturing, In Transit, Customs, Delivered
+    eta = Column(DateTime(timezone=True), nullable=True)
+    
+    # AI Risk detection
+    risk_flag = Column(String(255), nullable=True)
+    delay_estimate_days = Column(Integer, default=0)
+
+    purchase_order = relationship("PurchaseOrder", back_populates="shipments")
+

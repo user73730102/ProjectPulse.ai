@@ -284,3 +284,65 @@ export async function queryRFI(question: string): Promise<RFIResponse> {
 export async function getRFIHistory(limit = 20): Promise<RFIHistoryItem[]> {
   return request<RFIHistoryItem[]>(`/agents/rfi/history?limit=${limit}`);
 }
+
+// --- Phase 2 Agents API --------------------------------------------------
+
+export interface CommissioningTest {
+  id: string;
+  system: string;
+  status: string;
+  progress: number;
+  failedPoints: number;
+  totalPoints: number;
+  lastUpdated: string;
+  record_id: number | null;
+}
+
+export async function listCommissioningTests(): Promise<CommissioningTest[]> {
+  return request<CommissioningTest[]>("/commissioning/tests");
+}
+
+export async function evaluateTest(recordId: number): Promise<any> {
+  return request(`/commissioning/evaluate/${recordId}`, { method: "POST" });
+}
+
+export interface ScheduleRisk {
+  id: string;
+  task: string;
+  driver: string;
+  description: string;
+  impact: string;
+  severity: string;
+  mitigations: string[];
+}
+
+export async function listScheduleRisks(): Promise<ScheduleRisk[]> {
+  return request<ScheduleRisk[]>("/schedule/risks");
+}
+
+export async function runScheduleAnalysis(): Promise<any> {
+  return request("/schedule/analyze", { method: "POST" });
+}
+
+export interface Shipment {
+  id: string;
+  equipment: string;
+  vendor: string;
+  origin: string;
+  destination: string;
+  status: string;
+  location: string;
+  eta: string;
+  riskFlag: string | null;
+  delayEstimate: string | null;
+  shipment_db_id: number;
+}
+
+export async function listShipments(): Promise<Shipment[]> {
+  return request<Shipment[]>("/supply-chain/shipments");
+}
+
+export async function evaluateShipment(shipmentId: number): Promise<any> {
+  return request(`/supply-chain/evaluate/${shipmentId}`, { method: "POST" });
+}
+

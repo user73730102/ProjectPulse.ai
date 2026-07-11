@@ -20,7 +20,7 @@ from auth import (
     Token, create_access_token, verify_password, get_user_by_email,
     get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
 )
-from routers import documents, submittals, ncr, agents
+from routers import documents, submittals, ncr, agents, commissioning, schedule, supply_chain
 
 logging.basicConfig(level=logging.INFO)
 
@@ -51,6 +51,9 @@ app.include_router(documents.router)
 app.include_router(submittals.router)
 app.include_router(ncr.router)
 app.include_router(agents.router)
+app.include_router(commissioning.router)
+app.include_router(schedule.router)
+app.include_router(supply_chain.router)
 
 
 # ---------------------------------------------------------------------------
