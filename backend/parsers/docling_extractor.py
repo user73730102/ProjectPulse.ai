@@ -8,8 +8,10 @@ This production-grade parser natively understands document layouts, tables, and 
 import logging
 from typing import List
 
-from docling.document_converter import DocumentConverter
+from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.chunking import HierarchicalChunker
+from docling.datamodel.pipeline_options import PdfPipelineOptions
+from docling.datamodel.document import InputFormat
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,7 @@ def extract_spec_chunks(pdf_path: str) -> List[SpecChunk]:
     chunks = []
     
     try:
-        # Initialize Docling
+        # Initialize Docling with default options (which includes OCR)
         converter = DocumentConverter()
         chunker = HierarchicalChunker()
         

@@ -41,11 +41,14 @@ def embed_text(text: str) -> List[float]:
     return embedding.tolist()
 
 
-def embed_batch(texts: List[str], batch_size: int = 64) -> List[List[float]]:
+def embed_batch(texts: List[str], batch_size: int = 8) -> List[List[float]]:
     """
     Embed a batch of texts efficiently.
-    batch_size=64 is a good default for CPU — adjust down if OOM.
+    Reduced batch_size to 8 and set num_threads=1 to prevent PyTorch from silently crashing on EC2 CPUs.
     """
+    import torch
+    torch.set_num_threads(1)
+    
     model = _get_model()
     embeddings = model.encode(
         texts,
