@@ -347,3 +347,7 @@ export async function evaluateShipment(shipmentId: number): Promise<any> {
   return request(`/supply-chain/evaluate/${shipmentId}`, { method: "POST" });
 }
 
+
+export async function simulateWorld(): Promise<any> {
+  return request("/agents/simulate-world", { method: "POST" });
+}

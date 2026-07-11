@@ -40,11 +40,30 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = () => {
+    setLoading(true);
     Promise.all([listNCRs(), listSubmittals(), listDocuments()])
       .then(([n, s, d]) => { setNCRs(n); setSubmittals(s); setDocs(d); })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  const handleSimulate = async () => {
+    const btn = document.getElementById("sim-btn");
+    if (btn) btn.innerText = "Simulating World...";
+    try {
+      const { simulateWorld } = await import("@/lib/api");
+      await simulateWorld();
+      alert("New mock world generated successfully! Refreshing data...");
+      window.location.reload();
+    } catch (e: any) {
+      alert("Failed to simulate world: " + e.message);
+      if (btn) btn.innerText = "Re-Simulate Demo Data";
+    }
+  };
 
   const criticalNCRs = ncrs.filter(n => n.severity === "Critical" && n.status !== "approved" && n.status !== "voided");
   const openNCRs = ncrs.filter(n => n.status === "draft" || n.status === "pending_review");
@@ -64,14 +83,26 @@ export default function DashboardPage() {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8 fade-up">
-        <h1 className="text-2xl font-bold text-foreground">
-          Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"},{" "}
-          <span className="gradient-text">{user?.full_name?.split(" ")[0] || "there"}</span>
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Here&apos;s your project intelligence summary for DC-PROJ-2024-001
-        </p>
+      <div className="mb-8 fade-up flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">
+            Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"},{" "}
+            <span className="gradient-text">{user?.full_name?.split(" ")[0] || "there"}</span>
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Here&apos;s your project intelligence summary for DC-PROJ-2024-001
+          </p>
+        </div>
+        <button 
+          id="sim-btn"
+          onClick={handleSimulate}
+          className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Re-Simulate Demo Data
+        </button>
       </div>
 
       {/* Stats */}

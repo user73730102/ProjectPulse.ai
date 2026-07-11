@@ -141,6 +141,22 @@ async def query_rfi_agent(
         raise HTTPException(500, f"RFI agent failed: {str(e)}")
 
 
+@router.post("/simulate-world")
+async def simulate_world_state(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(require_roles([Role.PM])),
+):
+    """
+    Clears existing mock data and uses Gemini to generate a highly realistic 
+    new world state (tasks, equipment, shipments, and test records).
+    """
+    from agents.simulator_agent import generate_world_simulation
+    
+    result = generate_world_simulation()
+    if "error" in result:
+        raise HTTPException(500, f"Simulation failed: {result['error']}")
+    return result
+
 @router.get("/rfi/history", response_model=list[RFIHistoryItem])
 def get_rfi_history(
     limit: int = 20,
