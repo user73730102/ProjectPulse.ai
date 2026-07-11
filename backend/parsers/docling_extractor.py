@@ -81,6 +81,16 @@ def extract_spec_chunks(pdf_path: str) -> List[SpecChunk]:
                 page=page_num
             ))
             
+        # Ultimate fallback if docling found literally nothing
+        if not chunks:
+            logger.warning("Document yielded 0 chunks. Appending a placeholder chunk.")
+            chunks.append(SpecChunk(
+                clause_number="0.0",
+                title="Unreadable Document",
+                content="The AI could not read any text from this document. It may be a scanned image with unrecognizable text, or completely blank.",
+                page=1
+            ))
+            
     except Exception as e:
         logger.error(f"Failed to parse PDF with Docling: {e}", exc_info=True)
         # Return at least one chunk so the system doesn't break completely

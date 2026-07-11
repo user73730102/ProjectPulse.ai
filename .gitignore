@@ -47,3 +47,17 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# ==========================================
+# Terraform / Infrastructure
+# ==========================================
+deploy/.terraform/
+deploy/*.tfstate
+deploy/*.tfstate.*
+deploy/*.tfvars
+deploy/crash.log
+
+# ==========================================
+# Test Files
+# ==========================================
+*.html
