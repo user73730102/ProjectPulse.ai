@@ -11,7 +11,7 @@ passlib[bcrypt]==1.7.4
 python-multipart==0.0.9
 
 # Document Parsing
-pypdf==4.2.0       # Used for initial page rendering / metadata extraction
+docling>=2.0.0        # IBM Docling for advanced layout and hierarchical PDF extraction
 pytesseract==0.3.10   # Kept as OCR fallback for scanned pages only
 
 # Embeddings — local, no API cost

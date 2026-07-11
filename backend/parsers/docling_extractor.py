@@ -1,15 +1,15 @@
 """
-parsers/docling_extractor.py (Renamed internally to use pypdf for MSYS2 compatibility)
+parsers/docling_extractor.py
 
-Extracts text from PDF spec documents and splits them into section chunks.
-We use pure Python `pypdf` here to avoid C-extension compilation issues on MSYS2 Windows.
-For production (Step 6), this should be swapped back to `docling` for accurate table/layout parsing.
+Extracts text from PDF spec documents and splits them into hierarchical section chunks using IBM Docling.
+This production-grade parser natively understands document layouts, tables, and nested headers.
 """
 
 import logging
 from typing import List
-from pypdf import PdfReader
-import re
+
+from docling.document_converter import DocumentConverter
+from docling.chunking import HierarchicalChunker
 
 logger = logging.getLogger(__name__)
 
@@ -23,70 +23,53 @@ class SpecChunk:
 
 def extract_spec_chunks(pdf_path: str) -> List[SpecChunk]:
     """
-    Parses a specification PDF using pypdf.
-    Attempts to identify clause numbers like '1.1', '2.3.4' to split the text.
+    Parses a specification PDF using IBM Docling.
+    Uses HierarchicalChunker to intelligently chunk the document based on its visual structure.
     """
-    logger.info(f"Extracting text from {pdf_path} using pypdf")
+    logger.info(f"Extracting text from {pdf_path} using Docling")
     chunks = []
     
     try:
-        reader = PdfReader(pdf_path)
-        current_clause = None
-        current_title = None
-        current_content = []
-        current_page = 1
+        # Initialize Docling
+        converter = DocumentConverter()
+        chunker = HierarchicalChunker()
         
-        # Simple regex for clause numbers like "1.2", "1.2.3", "PART 1"
-        clause_pattern = re.compile(r"^(\d+\.\d+(?:\.\d+)?|PART \d+)\s*(.*)", re.IGNORECASE)
-
-        for i, page in enumerate(reader.pages):
-            page_num = i + 1
-            text = page.extract_text()
-            if not text:
-                continue
+        # Parse the document (this downloads OCR models on first run and is CPU intensive)
+        result = converter.convert(pdf_path)
+        doc = result.document
+        
+        # Generate semantic chunks
+        doc_chunks = chunker.chunk(doc)
+        
+        for chunk in doc_chunks:
+            # Safely extract metadata provided by Docling
+            title = "Untitled Section"
+            clause_number = "0.0"
+            page_num = 1
+            
+            if chunk.meta:
+                # Get heading string if available
+                if getattr(chunk.meta, 'heading', None):
+                    title = chunk.meta.heading
                 
-            lines = text.split("\n")
-            for line in lines:
-                line = line.strip()
-                if not line:
-                    continue
-                    
-                match = clause_pattern.match(line)
-                if match:
-                    # Save previous chunk
-                    if current_clause and current_content:
-                        chunks.append(SpecChunk(
-                            clause_number=current_clause,
-                            title=current_title or "Untitled Section",
-                            content="\n".join(current_content),
-                            page=current_page
-                        ))
-                    
-                    # Start new chunk
-                    current_clause = match.group(1).strip()
-                    current_title = match.group(2).strip()
-                    current_content = [line]
-                    current_page = page_num
-                else:
-                    if not current_clause:
-                        # Top of document before first clause
-                        current_clause = "0.0"
-                        current_title = "General"
-                        current_page = page_num
-                    current_content.append(line)
-                    
-        # Add final chunk
-        if current_clause and current_content:
+                # Try to extract the first page number from provenance items
+                if getattr(chunk.meta, 'doc_items', None):
+                    for item in chunk.meta.doc_items:
+                        if hasattr(item, 'prov') and item.prov:
+                            # docling's provenance typically has page_no
+                            page_num = item.prov[0].page_no
+                            break
+                            
             chunks.append(SpecChunk(
-                clause_number=current_clause,
-                title=current_title or "Untitled Section",
-                content="\n".join(current_content),
-                page=current_page
+                clause_number=clause_number,
+                title=title,
+                content=chunk.text,
+                page=page_num
             ))
             
     except Exception as e:
-        logger.error(f"Failed to parse PDF with pypdf: {e}")
-        # Return at least one chunk so the system doesn't break
+        logger.error(f"Failed to parse PDF with Docling: {e}", exc_info=True)
+        # Return at least one chunk so the system doesn't break completely
         chunks.append(SpecChunk(
             clause_number="ERROR",
             title="Extraction Failed",
