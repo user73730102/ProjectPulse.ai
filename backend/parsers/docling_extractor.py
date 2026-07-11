@@ -32,8 +32,11 @@ def extract_spec_chunks(pdf_path: str) -> List[SpecChunk]:
     chunks = []
     
     try:
-        # Initialize Docling with default options (which includes OCR)
-        converter = DocumentConverter()
+        # Initialize Docling without OCR for maximum speed on large documents
+        pipeline_options = PdfPipelineOptions(do_ocr=False)
+        converter = DocumentConverter(
+            format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)}
+        )
         chunker = HierarchicalChunker()
         
         # Parse the document (this downloads OCR models on first run and is CPU intensive)
