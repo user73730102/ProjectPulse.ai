@@ -21,6 +21,7 @@ def generate_world_simulation() -> dict:
     db: Session = database.SessionLocal()
     try:
         # Clear existing simulated data
+        db.query(models.NonConformanceReport).filter(models.NonConformanceReport.test_record_id.isnot(None)).delete()
         db.query(models.Shipment).delete()
         db.query(models.PurchaseOrder).delete()
         db.query(models.Equipment).delete()
