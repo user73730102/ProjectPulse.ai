@@ -4,6 +4,7 @@
  * Uses fetch with JWT token from localStorage.
  */
 
+// Use the environment variable, which must be injected at build time.
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 // ─── Auth helpers ──────────────────────────────────────────────────────────
