@@ -188,15 +188,18 @@ export async function listDocuments(params?: { doc_type?: string; project_id?: s
   return request<Document[]>(`/documents/${q ? `?${q}` : ""}`);
 }
 
-export async function uploadDocument(file: File, doc_type: string, project_id?: string): Promise<Document> {
+export async function uploadDocument(file: File, docType: string, project_id?: string): Promise<Document> {
   const form = new FormData();
   form.append("file", file);
-  form.append("doc_type", doc_type);
+  form.append("doc_type", docType);
   if (project_id) form.append("project_id", project_id);
+
+  const headers = authHeaders() as Record<string, string>;
+  delete headers["Content-Type"];
 
   const res = await fetch(`${API_BASE}/documents/upload`, {
     method: "POST",
-    headers: { ...authHeaders() } as HeadersInit,
+    headers,
     body: form,
   });
   if (!res.ok) {
@@ -229,9 +232,12 @@ export async function uploadSubmittal(file: File): Promise<SubmittalDetail[]> {
   const form = new FormData();
   form.append("file", file);
   
+  const headers = authHeaders() as Record<string, string>;
+  delete headers["Content-Type"]; // Let browser set multipart boundary
+  
   const res = await fetch(`${API_BASE}/submittals/upload`, {
     method: "POST",
-    headers: { ...authHeaders() } as HeadersInit,
+    headers,
     body: form,
   });
   if (!res.ok) {
