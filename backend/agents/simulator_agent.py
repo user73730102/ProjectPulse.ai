@@ -149,11 +149,15 @@ def generate_world_simulation() -> dict:
                         procedure_id=proc.id,
                         results=[{"step_no": r["step"], "actual_value": r.get("actual", "0"), "pass": r.get("pass", True)} for r in rec_data.get("results", [])],
                         progress=rec_data.get("progress", 100),
-                        status=rec_data.get("status", "Pending")
                     )
                     db.add(rec)
+                    db.commit()
+                    db.refresh(rec)
+                    
+                    # Automatically evaluate the simulated test record to generate an NCR if it failed
+                    from agents.commissioning_agent import evaluate_test_record
+                    evaluate_test_record(rec.id)
         
-        db.commit()
         return {"status": "success", "message": "World simulation generated successfully."}
 
     except Exception as e:
