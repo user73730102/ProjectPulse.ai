@@ -115,15 +115,15 @@ export default function Sidebar() {
             </svg>
           </div>
           <div>
-            <p className="text-sm font-bold text-foreground leading-tight">ProjectPulse</p>
-            <p className="text-[10px] text-muted-foreground leading-tight">EPC Intelligence</p>
+            <p className="text-sm font-bold text-white leading-tight">ProjectPulse</p>
+            <p className="text-[10px] text-slate-400 leading-tight">EPC Intelligence</p>
           </div>
         </div>
       </div>
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">Navigation</p>
+        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-2 mb-2">Navigation</p>
         {NAV_ITEMS.filter(item => !item.roles || (user && item.roles.includes(user.role))).map((item) => (
           <Link
             key={item.href}
@@ -149,13 +149,13 @@ export default function Sidebar() {
               {user.full_name?.[0] || user.email[0].toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-foreground truncate">{user.full_name || user.email}</p>
-              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${ROLE_COLORS[user.role] || "text-muted-foreground"}`}>
+              <p className="text-xs font-medium text-white truncate">{user.full_name || user.email}</p>
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${ROLE_COLORS[user.role] || "text-slate-400"}`}>
                 {user.role.toUpperCase()}
               </span>
             </div>
             <button onClick={logout} title="Sign out"
-              className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+              className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
