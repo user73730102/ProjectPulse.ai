@@ -30,6 +30,7 @@ const NAV_ITEMS = [
   {
     href: "/submittals",
     label: "Submittals",
+    roles: ["pm", "engineer", "contractor"],
     icon: (
       <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
@@ -39,6 +40,7 @@ const NAV_ITEMS = [
   {
     href: "/compliance",
     label: "Compliance (NCR)",
+    roles: ["pm", "engineer", "auditor"],
     icon: (
       <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
@@ -57,6 +59,7 @@ const NAV_ITEMS = [
   {
     href: "/commissioning",
     label: "Commissioning QA",
+    roles: ["pm", "engineer", "auditor"],
     isRoadmap: true,
     icon: (
       <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -67,6 +70,7 @@ const NAV_ITEMS = [
   {
     href: "/schedule",
     label: "Schedule Risk",
+    roles: ["pm", "engineer", "contractor"],
     isRoadmap: true,
     icon: (
       <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -77,6 +81,7 @@ const NAV_ITEMS = [
   {
     href: "/supply-chain",
     label: "Supply Chain",
+    roles: ["pm", "contractor", "engineer"],
     isRoadmap: true,
     icon: (
       <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,7 +124,7 @@ export default function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">Navigation</p>
-        {NAV_ITEMS.map((item) => (
+        {NAV_ITEMS.filter(item => !item.roles || (user && item.roles.includes(user.role))).map((item) => (
           <Link
             key={item.href}
             href={item.href}

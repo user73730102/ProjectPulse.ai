@@ -193,15 +193,17 @@ export default function DashboardPage() {
           <p className="text-xs text-muted-foreground mt-0.5">Add specs, submittals, drawings</p>
         </Link>
 
-        <Link href="/compliance" className="glass rounded-xl p-5 hover:border-amber-500/30 transition-all group">
-          <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-3 group-hover:bg-amber-500/20 transition-colors">
-            <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-            </svg>
-          </div>
-          <p className="text-sm font-semibold text-foreground">Review NCRs</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{openNCRs.length} awaiting review</p>
-        </Link>
+        {["pm", "engineer", "auditor"].includes(user?.role || "") && (
+          <Link href="/compliance" className="glass rounded-xl p-5 hover:border-amber-500/30 transition-all group">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-3 group-hover:bg-amber-500/20 transition-colors">
+              <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
+            </div>
+            <p className="text-sm font-semibold text-foreground">Review NCRs</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{openNCRs.length} awaiting review</p>
+          </Link>
+        )}
       </div>
 
       {/* Multi-Agent Architecture Diagram */}
