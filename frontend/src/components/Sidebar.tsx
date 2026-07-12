@@ -128,11 +128,6 @@ export default function Sidebar() {
           >
             {item.icon}
             <span className="flex-1">{item.label}</span>
-            {item.isRoadmap && (
-              <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-blue-500/20 text-blue-400 tracking-wider">
-                ROADMAP
-              </span>
-            )}
           </Link>
         ))}
       </nav>
