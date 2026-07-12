@@ -74,89 +74,8 @@ def generate_world_simulation() -> dict:
         
         data = json.loads(text.strip())
         
-        now = datetime.now(timezone.utc)
-        
-        # 1. Equipment & POs
-        eq_map = {}
-        for eq_data in data.get("equipment", []):
-            eq = models.Equipment(
-                equipment_tag=eq_data["tag"],
-                name=eq_data["name"]
-            )
-            db.add(eq)
-            db.commit()
-            db.refresh(eq)
-            eq_map[eq_data["tag"]] = eq.id
-            
-            # Auto-generate a Purchase Order
-            po = models.PurchaseOrder(
-                po_number=f"PO-{eq.id}-2026",
-                equipment_id=eq.id,
-                vendor_name=f"Vendor for {eq.name}"
-            )
-            db.add(po)
-            db.commit()
-            db.refresh(po)
-            
-            # Find shipments for this equipment
-            for shp_data in data.get("shipments", []):
-                if shp_data.get("equipment_tag") == eq_data["tag"]:
-                    shp = models.Shipment(
-                        tracking_number=f"TRK-{po.id}-{shp_data['eta_days_from_now']}",
-                        purchase_order_id=po.id,
-                        origin=shp_data["origin"],
-                        destination=shp_data["destination"],
-                        current_location=shp_data["location"],
-                        status=shp_data["status"],
-                        eta=now + timedelta(days=int(shp_data["eta_days_from_now"]))
-                    )
-                    db.add(shp)
-        
-        # 2. Schedule Tasks
-        for t_data in data.get("schedule_tasks", []):
-            task = models.ScheduleTask(
-                task_id=t_data["task_id"],
-                task_name=t_data["name"],
-                start_date=now + timedelta(days=int(t_data["start_days_from_now"])),
-                end_date=now + timedelta(days=int(t_data["start_days_from_now"]) + int(t_data["duration_days"])),
-                is_critical=True
-            )
-            db.add(task)
-            db.commit()
-            
-            if t_data.get("linked_equipment") and t_data["linked_equipment"] in eq_map:
-                eq = db.query(models.Equipment).filter(models.Equipment.id == eq_map[t_data["linked_equipment"]]).first()
-                if eq:
-                    eq.linked_task_id = task.task_id
-                    db.commit()
-
-        # 3. Commissioning
-        for proc_data in data.get("test_procedures", []):
-            proc = models.TestProcedure(
-                procedure_number=proc_data["number"],
-                system_name=proc_data["system"],
-                description=proc_data["desc"],
-                steps=[{"step_no": s["step"], "description": s["desc"], "expected_value": s["expected"]} for s in proc_data.get("steps", [])]
-            )
-            db.add(proc)
-            db.commit()
-            db.refresh(proc)
-            
-            # Find record for this procedure
-            for rec_data in data.get("test_records", []):
-                if rec_data.get("procedure_number") == proc_data["number"]:
-                    rec = models.TestRecord(
-                        procedure_id=proc.id,
-                        results=[{"step_no": r["step"], "actual_value": r.get("actual", "0"), "pass": r.get("pass", True)} for r in rec_data.get("results", [])],
-                        progress=rec_data.get("progress", 100),
-                    )
-                    db.add(rec)
-                    db.commit()
-                    db.refresh(rec)
-                    
-                    # Automatically evaluate the simulated test record to generate an NCR if it failed
-                    from agents.commissioning_agent import evaluate_test_record
-                    evaluate_test_record(rec.id)
+        # Inject the parsed data
+        inject_world_data(db, data)
         
         return {"status": "success", "message": "World simulation generated successfully."}
 
@@ -166,3 +85,91 @@ def generate_world_simulation() -> dict:
         return {"error": str(e)}
     finally:
         db.close()
+
+def inject_world_data(db: Session, data: dict):
+    """
+    Injects specific mock data into the database. Assumes existing mock data is already cleared if needed.
+    """
+    now = datetime.now(timezone.utc)
+    
+    # 1. Equipment & POs
+    eq_map = {}
+    for eq_data in data.get("equipment", []):
+        eq = models.Equipment(
+            equipment_tag=eq_data.get("tag", "UKN"),
+            name=eq_data.get("name", "Unknown Equipment")
+        )
+        db.add(eq)
+        db.commit()
+        db.refresh(eq)
+        eq_map[eq_data.get("tag", "UKN")] = eq.id
+        
+        # Auto-generate a Purchase Order
+        po = models.PurchaseOrder(
+            po_number=f"PO-{eq.id}-2026",
+            equipment_id=eq.id,
+            vendor_name=f"Vendor for {eq.name}"
+        )
+        db.add(po)
+        db.commit()
+        db.refresh(po)
+        
+        # Find shipments for this equipment
+        for shp_data in data.get("shipments", []):
+            if shp_data.get("equipment_tag") == eq_data.get("tag"):
+                shp = models.Shipment(
+                    tracking_number=f"TRK-{po.id}-{shp_data.get('eta_days_from_now', 0)}",
+                    purchase_order_id=po.id,
+                    origin=shp_data.get("origin", "Unknown"),
+                    destination=shp_data.get("destination", "Site"),
+                    current_location=shp_data.get("location", "Unknown"),
+                    status=shp_data.get("status", "Pending"),
+                    eta=now + timedelta(days=int(shp_data.get("eta_days_from_now", 0)))
+                )
+                db.add(shp)
+    
+    # 2. Schedule Tasks
+    for t_data in data.get("schedule_tasks", []):
+        task = models.ScheduleTask(
+            task_id=t_data.get("task_id", "T00"),
+            task_name=t_data.get("name", "Unknown Task"),
+            start_date=now + timedelta(days=int(t_data.get("start_days_from_now", 0))),
+            end_date=now + timedelta(days=int(t_data.get("start_days_from_now", 0)) + int(t_data.get("duration_days", 1))),
+            is_critical=True
+        )
+        db.add(task)
+        db.commit()
+        
+        if t_data.get("linked_equipment") and t_data["linked_equipment"] in eq_map:
+            eq = db.query(models.Equipment).filter(models.Equipment.id == eq_map[t_data["linked_equipment"]]).first()
+            if eq:
+                eq.linked_task_id = task.task_id
+                db.commit()
+
+    # 3. Commissioning
+    for proc_data in data.get("test_procedures", []):
+        proc = models.TestProcedure(
+            procedure_number=proc_data.get("number", "P00"),
+            system_name=proc_data.get("system", "General"),
+            description=proc_data.get("desc", ""),
+            steps=[{"step_no": s.get("step", 1), "description": s.get("desc", ""), "expected_value": s.get("expected", "")} for s in proc_data.get("steps", [])]
+        )
+        db.add(proc)
+        db.commit()
+        db.refresh(proc)
+        
+        # Find record for this procedure
+        for rec_data in data.get("test_records", []):
+            if rec_data.get("procedure_number") == proc_data.get("number"):
+                rec = models.TestRecord(
+                    procedure_id=proc.id,
+                    results=[{"step_no": r.get("step", 1), "actual_value": r.get("actual", "0"), "pass": r.get("pass", True)} for r in rec_data.get("results", [])],
+                    progress=rec_data.get("progress", 100),
+                )
+                db.add(rec)
+                db.commit()
+                db.refresh(rec)
+                
+                # Automatically evaluate the simulated test record to generate an NCR if it failed
+                from agents.commissioning_agent import evaluate_test_record
+                evaluate_test_record(rec.id)

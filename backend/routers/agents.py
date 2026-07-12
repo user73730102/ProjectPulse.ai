@@ -65,12 +65,65 @@ class RFIHistoryItem(BaseModel):
     class Config:
         from_attributes = True
 
+# --- Inject Data API Schemas ---
+class EquipmentPayload(BaseModel):
+    tag: str
+    name: str
+
+class ShipmentPayload(BaseModel):
+    equipment_tag: str
+    origin: str
+    destination: str
+    location: str
+    status: str
+    eta_days_from_now: int
+
+class ScheduleTaskPayload(BaseModel):
+    task_id: str
+    name: str
+    start_days_from_now: int
+    duration_days: int
+    linked_equipment: Optional[str] = None
+
+class TestStepPayload(BaseModel):
+    step: int
+    desc: str
+    expected: str
+
+class TestProcedurePayload(BaseModel):
+    number: str
+    system: str
+    desc: str
+    steps: list[TestStepPayload]
+
+class TestResultPayload(BaseModel):
+    step: int
+    actual: str
+    pass_: bool = True  # Using pass_ because pass is a python keyword
+
+class TestRecordPayload(BaseModel):
+    procedure_number: str
+    progress: int
+    status: str
+    results: list[dict] # Accepting dict here to keep it simple, or we can use alias for "pass"
+
+class WorldStateRequest(BaseModel):
+    equipment: list[EquipmentPayload]
+    shipments: list[ShipmentPayload]
+    schedule_tasks: list[ScheduleTaskPayload]
+    test_procedures: list[TestProcedurePayload]
+    test_records: list[dict] # Keeping dict for simplicity so the "pass" key maps easily
 
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
 
-@router.post("/compliance/run/{submittal_id}", response_model=ComplianceRunResponse)
+@router.post(
+    "/compliance/run/{submittal_id}",
+    response_model=ComplianceRunResponse,
+    summary="Run Compliance Agent",
+    description="Trigger the AI Compliance Agent to review a Submittal against project Specifications. Automatically generates NCRs if deviations are found."
+)
 async def run_compliance_check(
     submittal_id: int,
     background_tasks: BackgroundTasks,
@@ -111,7 +164,12 @@ async def run_compliance_check(
         raise HTTPException(500, f"Agent execution failed: {str(e)}")
 
 
-@router.post("/rfi/query", response_model=RFIQueryResponse)
+@router.post(
+    "/rfi/query",
+    response_model=RFIQueryResponse,
+    summary="Query RFI Agent",
+    description="Ask the AI RFI Agent a question about project documents. It will search embedded documents and return a synthesized answer with precise citations."
+)
 async def query_rfi_agent(
     payload: RFIQueryRequest,
     db: Session = Depends(database.get_db),
@@ -141,7 +199,11 @@ async def query_rfi_agent(
         raise HTTPException(500, f"RFI agent failed: {str(e)}")
 
 
-@router.post("/simulate-world")
+@router.post(
+    "/simulate-world",
+    summary="Simulate World State (AI)",
+    description="Uses Google Gemini to autonomously hallucinate a highly realistic, randomized Data Centre construction scenario and injects it into the database."
+)
 async def simulate_world_state(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(require_roles([Role.PM])),
@@ -157,7 +219,49 @@ async def simulate_world_state(
         raise HTTPException(500, f"Simulation failed: {result['error']}")
     return result
 
-@router.get("/rfi/history", response_model=list[RFIHistoryItem])
+
+@router.post(
+    "/inject-data",
+    summary="Inject Custom Mock Data",
+    description="Accepts a highly structured JSON payload to instantly inject specific mock data (equipment, shipments, tasks, test records) into the database, bypassing the AI simulator."
+)
+async def inject_world_data_api(
+    payload: WorldStateRequest,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(require_roles([Role.PM, Role.ENGINEER])),
+):
+    """
+    Endpoint for programmatic injection of specific mock data scenarios.
+    """
+    from agents.simulator_agent import inject_world_data
+    try:
+        # Clear existing simulated data before injection
+        db.query(models.NonConformanceReport).filter(models.NonConformanceReport.test_record_id.isnot(None)).delete()
+        db.query(models.Shipment).delete()
+        db.query(models.PurchaseOrder).delete()
+        db.query(models.Equipment).delete()
+        db.query(models.TestRecord).delete()
+        db.query(models.TestProcedure).delete()
+        db.query(models.ScheduleTask).delete()
+        db.commit()
+
+        # Call the refactored injection function. 
+        # model_dump() safely converts Pydantic objects to dicts
+        inject_world_data(db, payload.model_dump())
+        
+        return {"status": "success", "message": "Custom data injected successfully."}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Inject data error: {e}")
+        raise HTTPException(500, f"Injection failed: {str(e)}")
+
+
+@router.get(
+    "/rfi/history",
+    response_model=list[RFIHistoryItem],
+    summary="Get RFI History",
+    description="Retrieves the recent history of questions asked to the RFI Agent."
+)
 def get_rfi_history(
     limit: int = 20,
     db: Session = Depends(database.get_db),
