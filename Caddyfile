@@ -1,0 +1,12 @@
+project-pulse.duckdns.org {
+    # Route all requests starting with /api to the backend,
+    # stripping the /api prefix before sending it to the backend container.
+    handle_path /api* {
+        reverse_proxy backend:8000
+    }
+
+    # Route everything else to the Next.js frontend
+    handle {
+        reverse_proxy frontend:3000
+    }
+}

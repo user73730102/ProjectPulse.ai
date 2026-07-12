@@ -20,8 +20,6 @@ services:
   backend:
     build: ./backend
     container_name: pulse_backend
-    ports:
-      - "8000:8000"
     environment:
       - DATABASE_URL=postgresql+pg8000://pulse_user:pulse_password@db:5432/pulse_db
     env_file:
@@ -36,15 +34,30 @@ services:
     build: 
       context: ./frontend
       args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        - NEXT_PUBLIC_API_URL=https://project-pulse.duckdns.org/api
     container_name: pulse_frontend
-    ports:
-      - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      - NEXT_PUBLIC_API_URL=https://project-pulse.duckdns.org/api
     depends_on:
       - backend
     restart: unless-stopped
 
+  caddy:
+    image: caddy:latest
+    container_name: pulse_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+
 volumes:
   pulse_pgdata:
+  caddy_data:
+  caddy_config:

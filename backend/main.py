@@ -32,6 +32,7 @@ app = FastAPI(
     title="ProjectPulse AI — EPC Intelligence Platform",
     description="AI-powered compliance, RFI, and project intelligence for Data Centre EPC delivery.",
     version="1.0.0",
+    root_path="/api",
 )
 
 # CORS — in production restrict to your actual frontend domain
