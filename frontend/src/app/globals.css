@@ -102,7 +102,7 @@ body {
   pointer-events: none;
 }
 
-/* ── Sidebar nav item (Explicitly dark) ─────────────────── */
+/* ── Sidebar nav item ─────────────────────────────────────── */
 .nav-item {
   display: flex;
   align-items: center;
@@ -111,19 +111,20 @@ body {
   border-radius: 0.625rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #94a3b8; /* slate-400 */
+  color: hsl(var(--muted-foreground));
+  border: 1px solid transparent;
   transition: all 0.15s ease;
   cursor: pointer;
   text-decoration: none;
 }
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: hsl(var(--secondary));
+  color: hsl(var(--foreground));
 }
 .nav-item.active {
-  background: hsl(221 83% 53% / 0.15);
-  color: hsl(221 83% 65%);
-  border: 1px solid hsl(221 83% 53% / 0.25);
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  border: 1px solid hsl(var(--primary) / 0.25);
 }
 
 /* ── Status badges ───────────────────────────────────────── */
