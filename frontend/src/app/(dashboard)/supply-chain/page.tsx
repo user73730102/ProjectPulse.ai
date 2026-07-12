@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { listShipments, evaluateShipment, Shipment } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function SupplyChainPage() {
   const [shipments, setShipments] = useState<Shipment[]>([]);
@@ -21,13 +22,13 @@ export default function SupplyChainPage() {
     try {
       const res = await evaluateShipment(id);
       if (res.risk_flag) {
-        alert(`AI detected a delay risk: ${res.risk_flag} (+${res.delay} Days)`);
+        toast.error(`AI detected a delay risk: ${res.risk_flag} (+${res.delay} Days)`);
       } else {
-        alert("Shipment is on track. No delays detected.");
+        toast.success("Shipment is on track. No delays detected.");
       }
       fetchData();
     } catch (err: any) {
-      alert("Error evaluating shipment: " + err.message);
+      toast.error("Error evaluating shipment: " + err.message);
     } finally {
       setEvaluatingId(null);
     }

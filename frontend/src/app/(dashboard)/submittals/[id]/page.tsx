@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSubmittal, runComplianceCheck, SubmittalDetail, NCRSummary } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
@@ -43,10 +44,10 @@ export default function SubmittalDetailPage() {
     try {
       const res = await runComplianceCheck(id);
       if (res.error) throw new Error(res.error);
-      alert(`AI Check Complete. Generated ${res.ncrs_created} draft NCR(s).`);
+      toast.success(`AI Check Complete. Generated ${res.ncrs_created} draft NCR(s).`);
       fetchData(); // Refresh to see new NCRs
     } catch (e: any) {
-      alert("Check failed: " + e.message);
+      toast.error("Check failed: " + e.message);
     } finally {
       setRunning(false);
     }

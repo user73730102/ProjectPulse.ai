@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { listScheduleRisks, runScheduleAnalysis, ScheduleRisk } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function ScheduleRiskPage() {
   const [risks, setRisks] = useState<ScheduleRisk[]>([]);
@@ -20,10 +21,10 @@ export default function ScheduleRiskPage() {
     setSyncing(true);
     try {
       const res = await runScheduleAnalysis();
-      alert(`Schedule Analysis Complete! Found ${res.risks_found} critical risks.`);
+      toast.success(`Schedule Analysis Complete! Found ${res.risks_found} critical risks.`);
       fetchData();
     } catch (err: any) {
-      alert("Error running schedule analysis: " + err.message);
+      toast.error("Error running schedule analysis: " + err.message);
     } finally {
       setSyncing(false);
     }

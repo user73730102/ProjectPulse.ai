@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { listSubmittals, Submittal, runComplianceCheck, uploadSubmittal } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
@@ -41,16 +42,17 @@ export default function SubmittalsPage() {
     if (!file) return;
 
     if (file.type !== "application/pdf") {
-      alert("Please upload a PDF file.");
+      toast.error("Please upload a PDF file.");
       return;
     }
 
     setUploading(true);
     try {
       await uploadSubmittal(file);
+      toast.success("Submittal uploaded successfully.");
       fetchData(); // Refresh list to show the new parsed submittal
     } catch (err: any) {
-      alert(`Upload failed: ${err.message}`);
+      toast.error(`Upload failed: ${err.message}`);
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -62,13 +64,13 @@ export default function SubmittalsPage() {
     try {
       const res = await runComplianceCheck(id);
       if (res.error) {
-        alert("Compliance check failed: " + res.error);
+        toast.error("Compliance check failed: " + res.error);
       } else {
-        alert(`Compliance check complete. ${res.ncrs_created} NCR(s) generated.`);
+        toast.success(`Compliance check complete. ${res.ncrs_created} NCR(s) generated.`);
         fetchData();
       }
     } catch (err: any) {
-      alert("Error: " + err.message);
+      toast.error("Error: " + err.message);
     } finally {
       setRunningId(null);
     }

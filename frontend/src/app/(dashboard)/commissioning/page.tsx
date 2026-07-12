@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { listCommissioningTests, evaluateTest, CommissioningTest } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function CommissioningPage() {
   const [tests, setTests] = useState<CommissioningTest[]>([]);
@@ -21,13 +22,13 @@ export default function CommissioningPage() {
     try {
       const res = await evaluateTest(recordId);
       if (res.ncr_id) {
-        alert(`Test Failed! AI has automatically drafted NCR #${res.ncr_id}.`);
+        toast.error(`Test Failed! AI has automatically drafted NCR #${res.ncr_id}.`);
       } else {
-        alert("Test Passed! No NCRs generated.");
+        toast.success("Test Passed! No NCRs generated.");
       }
       fetchData();
     } catch (err: any) {
-      alert("Error evaluating test: " + err.message);
+      toast.error("Error evaluating test: " + err.message);
     } finally {
       setEvaluatingId(null);
     }

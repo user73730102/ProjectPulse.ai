@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { listDocuments, uploadDocument, deleteDocument, Document } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -28,9 +29,10 @@ export default function DocumentsPage() {
     if (!confirm(`Are you sure you want to delete ${name}? This will remove all extracted chunks and related submittals.`)) return;
     try {
       await deleteDocument(id);
+      toast.success("Document deleted");
       fetchDocs();
     } catch (err: any) {
-      alert(err.message || "Failed to delete document");
+      toast.error(err.message || "Failed to delete document");
     }
   };
 
@@ -44,8 +46,10 @@ export default function DocumentsPage() {
     try {
       // Default to "spec" for this demo, in a real app you'd prompt the user
       await uploadDocument(file, "specification");
+      toast.success("Document uploaded successfully");
       fetchDocs(); // Refresh list
     } catch (err: any) {
+      toast.error(err.message || "Failed to upload document");
       setUploadError(err.message || "Failed to upload document");
     } finally {
       setUploading(false);

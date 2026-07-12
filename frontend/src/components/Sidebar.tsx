@@ -103,10 +103,10 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
 
   return (
-    <aside className="w-60 shrink-0 flex flex-col h-screen sticky top-0 border-r border-border print:hidden"
+    <aside className="w-60 shrink-0 flex flex-col h-screen sticky top-0 border-r border-slate-800 print:hidden"
       style={{ background: "hsl(var(--sidebar-bg))" }}>
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-border">
+      <div className="px-5 py-5 border-b border-slate-800">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
             <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -143,8 +143,8 @@ export default function Sidebar() {
 
       {/* User */}
       {user && (
-        <div className="px-3 py-4 border-t border-border">
-          <div className="flex items-center gap-2.5 px-2 py-2 rounded-lg bg-secondary/50">
+        <div className="px-3 py-4 border-t border-slate-800">
+          <div className="flex items-center gap-2.5 px-2 py-2 rounded-lg bg-slate-800/50">
             <div className="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-xs font-bold text-blue-400 shrink-0">
               {user.full_name?.[0] || user.email[0].toUpperCase()}
             </div>
