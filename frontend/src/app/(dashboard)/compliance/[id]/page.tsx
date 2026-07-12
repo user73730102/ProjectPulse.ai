@@ -47,6 +47,10 @@ export default function NCRDetailPage() {
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (loading) return <div className="p-8 max-w-5xl mx-auto"><div className="h-64 bg-card rounded-xl shimmer" /></div>;
   if (!ncr) return <div className="p-8 max-w-5xl mx-auto text-red-400">NCR not found or {error}</div>;
 
@@ -54,13 +58,13 @@ export default function NCRDetailPage() {
   const canVoid = user?.role === "pm" && ncr.status !== "closed" && ncr.status !== "voided";
 
   return (
-    <div className="p-8 max-w-5xl mx-auto pb-24">
+    <div className="p-8 max-w-5xl mx-auto pb-24 print:p-0 print:pb-0">
       {/* Header */}
       <div className="mb-6 fade-up flex items-start justify-between">
         <div>
-          <Link href="/compliance" className="text-xs text-blue-400 hover:text-blue-300 mb-2 inline-block">← Back to NCRs</Link>
+          <Link href="/compliance" className="text-xs text-blue-400 hover:text-blue-300 mb-2 inline-block print:hidden">← Back to NCRs</Link>
           <div className="flex items-center gap-3 mt-1">
-            <h1 className="text-2xl font-bold text-foreground font-mono">{ncr.ncr_number}</h1>
+            <h1 className="text-2xl font-bold text-foreground font-mono print:text-black">{ncr.ncr_number}</h1>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
               ncr.severity === "Critical" ? "badge-critical" : ncr.severity === "Major" ? "badge-major" : "badge-minor"
             }`}>{ncr.severity}</span>
@@ -68,11 +72,18 @@ export default function NCRDetailPage() {
               {ncr.status.replace("_", " ")}
             </span>
           </div>
-          <p className="text-sm text-muted-foreground mt-2 max-w-2xl">{ncr.deviation_description}</p>
+          <p className="text-sm text-muted-foreground mt-2 max-w-2xl print:text-gray-600">{ncr.deviation_description}</p>
         </div>
         
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 print:hidden">
+          <button onClick={handlePrint}
+            className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground text-sm font-medium transition-colors flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Export PDF
+          </button>
           {canApprove && (
             <button onClick={handleApprove} disabled={actionLoading}
               className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors disabled:opacity-50 shadow-lg shadow-emerald-500/20">
@@ -153,7 +164,7 @@ export default function NCRDetailPage() {
       
       {/* AI Confidence Banner */}
       {ncr.ai_confidence && (
-        <div className="mt-6 p-4 rounded-xl bg-blue-500/5 border border-blue-500/20 flex items-center gap-3 fade-up">
+        <div className="mt-6 p-4 rounded-xl bg-blue-500/5 border border-blue-500/20 flex items-center gap-3 fade-up print:hidden">
           <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
             <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { listNCRs, listSubmittals, listDocuments, NCR, Submittal, Document } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
+import { toast } from "sonner";
 
 function StatCard({ label, value, sub, color }: { label: string; value: number | string; sub?: string; color: string }) {
   return (
@@ -57,10 +58,10 @@ export default function DashboardPage() {
     try {
       const { simulateWorld } = await import("@/lib/api");
       await simulateWorld();
-      alert("New mock world generated successfully! Refreshing data...");
-      window.location.reload();
+      toast.success("New mock world generated successfully! Refreshing...");
+      setTimeout(() => window.location.reload(), 1500);
     } catch (e: any) {
-      alert("Failed to simulate world: " + e.message);
+      toast.error("Failed to simulate world: " + e.message);
       if (btn) btn.innerText = "Re-Simulate Demo Data";
     }
   };
@@ -202,6 +203,67 @@ export default function DashboardPage() {
           <p className="text-xs text-muted-foreground mt-0.5">{openNCRs.length} awaiting review</p>
         </Link>
       </div>
+
+      {/* Multi-Agent Architecture Diagram */}
+      <div className="mt-8 glass rounded-xl p-6 fade-up">
+        <h2 className="text-sm font-semibold text-foreground mb-6">Live Multi-Agent Engine</h2>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 relative">
+          
+          {/* Supply Chain Node */}
+          <div className="bg-secondary/40 border border-orange-500/30 p-4 rounded-xl w-64 text-center z-10 shadow-lg shadow-orange-500/5 group hover:border-orange-500/60 transition-colors">
+            <div className="w-10 h-10 mx-auto bg-orange-500/10 rounded-full flex items-center justify-center mb-2">
+              <svg className="w-5 h-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-bold text-foreground">Supply Chain Agent</h3>
+            <p className="text-xs text-muted-foreground mt-1">Tracks global equipment shipments & calculates port delays.</p>
+          </div>
+
+          {/* Animated Connecting Line */}
+          <div className="hidden md:flex flex-1 items-center justify-center -mx-4 z-0">
+            <div className="w-full h-[2px] bg-border relative overflow-hidden">
+              <div className="absolute top-0 left-0 h-full w-1/3 bg-gradient-to-r from-orange-400 to-purple-500 blur-[1px] animate-[slide_2s_ease-in-out_infinite]" />
+            </div>
+          </div>
+
+          {/* Schedule Risk Node */}
+          <div className="bg-secondary/40 border border-purple-500/30 p-4 rounded-xl w-64 text-center z-10 shadow-lg shadow-purple-500/5 group hover:border-purple-500/60 transition-colors">
+            <div className="w-10 h-10 mx-auto bg-purple-500/10 rounded-full flex items-center justify-center mb-2">
+              <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-bold text-foreground">Schedule Agent</h3>
+            <p className="text-xs text-muted-foreground mt-1">Consumes delay data & generates critical path mitigations.</p>
+          </div>
+
+          {/* Animated Connecting Line */}
+          <div className="hidden md:flex flex-1 items-center justify-center -mx-4 z-0">
+            <div className="w-full h-[2px] bg-border relative overflow-hidden">
+              <div className="absolute top-0 left-0 h-full w-1/3 bg-gradient-to-r from-purple-500 to-emerald-500 blur-[1px] animate-[slide_2s_ease-in-out_infinite_0.5s]" />
+            </div>
+          </div>
+
+          {/* Commissioning QA Node */}
+          <div className="bg-secondary/40 border border-emerald-500/30 p-4 rounded-xl w-64 text-center z-10 shadow-lg shadow-emerald-500/5 group hover:border-emerald-500/60 transition-colors">
+            <div className="w-10 h-10 mx-auto bg-emerald-500/10 rounded-full flex items-center justify-center mb-2">
+              <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-bold text-foreground">Commissioning QA</h3>
+            <p className="text-xs text-muted-foreground mt-1">Evaluates live test runs & drafts AI Non-Conformance Reports.</p>
+          </div>
+
+        </div>
+      </div>
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes slide {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(300%); }
+        }
+      `}} />
     </div>
   );
 }

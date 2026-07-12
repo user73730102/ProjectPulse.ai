@@ -98,7 +98,7 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
 
   return (
-    <aside className="w-60 shrink-0 flex flex-col h-screen sticky top-0 border-r border-border"
+    <aside className="w-60 shrink-0 flex flex-col h-screen sticky top-0 border-r border-border print:hidden"
       style={{ background: "hsl(var(--sidebar-bg))" }}>
       {/* Logo */}
       <div className="px-5 py-5 border-b border-border">
