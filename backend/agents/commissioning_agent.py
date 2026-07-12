@@ -41,10 +41,22 @@ def evaluate_test_record(test_record_id: int) -> dict:
         record.status = "Failed"
         db.commit()
 
+        # Map step_no to expected_value from procedure steps
+        expected_values = {step.get("step_no"): step.get("expected_value") for step in procedure.steps}
+
         # Draft an NCR for the failed test
         deviation_desc = f"Test Procedure {procedure.procedure_number} failed.\n"
+        required_val_str = ""
+        submitted_val_str = ""
+        
         for fs in failed_steps:
-            deviation_desc += f"- Step {fs.get('step_no')}: Expected {fs.get('expected_value')}, Actual {fs.get('actual_value')}\n"
+            step_no = fs.get('step_no')
+            actual = fs.get('actual_value')
+            expected = expected_values.get(step_no, "Unknown")
+            
+            deviation_desc += f"- Step {step_no}: Expected {expected}, Actual {actual}\n"
+            required_val_str += f"Step {step_no}: {expected}\n"
+            submitted_val_str += f"Step {step_no}: {actual}\n"
 
         # Ask LLM to determine severity and summarize
         prompt = f"""You are a QA Copilot analyzing a failed commissioning test.
@@ -67,6 +79,8 @@ def evaluate_test_record(test_record_id: int) -> dict:
         new_ncr = models.NonConformanceReport(
             ncr_number=f"NCR-TST-{record.id}",
             test_record_id=record.id,
+            required_value=required_val_str.strip(),
+            submitted_value=submitted_val_str.strip(),
             deviation_description=f"{deviation_desc}\n\nAI Analysis: {llm_resp}",
             severity=severity,
             status=models.NCRStatus.draft,
