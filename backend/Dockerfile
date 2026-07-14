@@ -5,6 +5,8 @@ WORKDIR /app
 
 
 # Install system dependencies required by Poppler (pdf2image) and Tesseract (OCR)
+# Use noninteractive to prevent tzdata from hanging the build waiting for user input
+ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y poppler-utils tesseract-ocr && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
