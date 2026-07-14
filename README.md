@@ -1,3 +1,8 @@
+## 🏆 Live Demo
+**Access the live platform here:** [https://project-pulse.duckdns.org](https://project-pulse.duckdns.org)
+
+For a guided evaluation of the platform, click on any of the **Fast Access** role cards on the login screen. A tailored onboarding modal will guide you through the AI features specific to your selected persona.
+
 # ProjectPulse AI 🏗️⚡
 
 **AI-powered compliance, RFI, and project intelligence for Data Centre EPC delivery.**
@@ -55,7 +60,4 @@ We have containerized the entire stack for a seamless 1-click setup.
 
 ---
 
-## 🏆 Live Demo
-**Access the live platform here:** [https://project-pulse.duckdns.org](https://project-pulse.duckdns.org)
 
-For a guided evaluation of the platform, click on any of the **Fast Access** role cards on the login screen. A tailored onboarding modal will guide you through the AI features specific to your selected persona.
