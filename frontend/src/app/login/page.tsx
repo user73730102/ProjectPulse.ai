@@ -110,7 +110,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-border"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground font-semibold tracking-wider">Fast Access For Judges</span>
+              <span className="bg-card px-2 text-muted-foreground font-semibold tracking-wider">Fast Access</span>
             </div>
           </div>
 
