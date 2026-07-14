@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
+import WelcomeModal from "@/components/WelcomeModal";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -28,6 +29,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="flex-1 overflow-auto">
         {children}
       </main>
+      <WelcomeModal />
     </div>
   );
 }

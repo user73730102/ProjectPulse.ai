@@ -15,10 +15,14 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    await performLogin(email, password);
+  };
+
+  const performLogin = async (loginEmail: string, loginPass: string) => {
     setError("");
     setLoading(true);
     try {
-      const user = await login(email, password);
+      const user = await login(loginEmail, loginPass);
       setUser(user);
       router.push("/dashboard");
     } catch (err: any) {
@@ -101,26 +105,71 @@ export default function LoginPage() {
           </form>
 
           {/* Demo credentials hint */}
-          <div className="mt-5 pt-5 border-t border-border">
-            <p className="text-xs text-muted-foreground mb-2 font-medium">Demo credentials</p>
-            <div className="grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
-              <button onClick={() => { setEmail("admin@projectpulse.ai"); setPassword("admin123"); }}
-                className="text-left px-2.5 py-1.5 rounded-md bg-secondary hover:bg-secondary/80 transition-colors">
-                <span className="text-blue-400 font-medium">PM</span> admin@...
-              </button>
-              <button onClick={() => { setEmail("engineer@projectpulse.ai"); setPassword("engineer123"); }}
-                className="text-left px-2.5 py-1.5 rounded-md bg-secondary hover:bg-secondary/80 transition-colors">
-                <span className="text-purple-400 font-medium">Engineer</span> engineer@...
-              </button>
-              <button onClick={() => { setEmail("auditor@projectpulse.ai"); setPassword("auditor123"); }}
-                className="text-left px-2.5 py-1.5 rounded-md bg-secondary hover:bg-secondary/80 transition-colors">
-                <span className="text-emerald-400 font-medium">Auditor</span> auditor@...
-              </button>
-              <button onClick={() => { setEmail("contractor@eaton.com"); setPassword("contractor123"); }}
-                className="text-left px-2.5 py-1.5 rounded-md bg-secondary hover:bg-secondary/80 transition-colors">
-                <span className="text-amber-400 font-medium">Contractor</span> contractor@...
-              </button>
+          <div className="mt-8 relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border"></div>
             </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground font-semibold tracking-wider">Fast Access For Judges</span>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <button 
+              onClick={() => performLogin("admin@projectpulse.ai", "admin123")}
+              disabled={loading}
+              className="flex flex-col items-center justify-center p-3 rounded-xl bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/20 transition-all duration-200 group"
+            >
+              <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold text-foreground">Project Manager</span>
+              <span className="text-[10px] text-muted-foreground">Schedule & Risk Focus</span>
+            </button>
+
+            <button 
+              onClick={() => performLogin("engineer@projectpulse.ai", "engineer123")}
+              disabled={loading}
+              className="flex flex-col items-center justify-center p-3 rounded-xl bg-purple-500/5 hover:bg-purple-500/10 border border-purple-500/20 transition-all duration-200 group"
+            >
+              <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold text-foreground">Engineer</span>
+              <span className="text-[10px] text-muted-foreground">Specs & Submittals Focus</span>
+            </button>
+
+            <button 
+              onClick={() => performLogin("auditor@projectpulse.ai", "auditor123")}
+              disabled={loading}
+              className="flex flex-col items-center justify-center p-3 rounded-xl bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/20 transition-all duration-200 group"
+            >
+              <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold text-foreground">Auditor</span>
+              <span className="text-[10px] text-muted-foreground">Compliance & NCR Focus</span>
+            </button>
+
+            <button 
+              onClick={() => performLogin("contractor@eaton.com", "contractor123")}
+              disabled={loading}
+              className="flex flex-col items-center justify-center p-3 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20 transition-all duration-200 group"
+            >
+              <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold text-foreground">Contractor</span>
+              <span className="text-[10px] text-muted-foreground">Supply Chain Focus</span>
+            </button>
           </div>
         </div>
       </div>
